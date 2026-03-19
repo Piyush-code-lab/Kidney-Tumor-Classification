@@ -14,10 +14,7 @@ class Training:
         )
         # Recompile with fresh optimizer for Keras 3 compatibility
         self.model.compile(
-            optimizer=tf.keras.optimizers.SGD(
-                learning_rate=self.config.params_learning_rate,
-                momentum=0.9
-            ),
+            optimizer=tf.keras.optimizers.SGD(momentum=0.9),
             loss='categorical_crossentropy',
             metrics=['accuracy']
         )
