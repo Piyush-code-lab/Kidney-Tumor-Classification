@@ -12,6 +12,15 @@ class Training:
         self.model = tf.keras.models.load_model(
             self.config.updated_base_model_path
         )
+        # Recompile with fresh optimizer for Keras 3 compatibility
+        self.model.compile(
+            optimizer=tf.keras.optimizers.SGD(
+                learning_rate=self.config.params_learning_rate,
+                momentum=0.9
+            ),
+            loss='categorical_crossentropy',
+            metrics=['accuracy']
+        )
 
     def train_valid_generator(self):
 
