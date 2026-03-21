@@ -9,6 +9,7 @@ class DataIngestionConfig:
     local_data_file: Path
     unzip_dir: Path
 
+
 @dataclass(frozen=True)
 class BaseModelConfig:
     root_dir: Path
@@ -19,6 +20,7 @@ class BaseModelConfig:
     params_include_top: bool
     params_weights: str
     params_classes: int
+
 
 @dataclass(frozen=True)
 class TrainingConfig:
@@ -31,3 +33,11 @@ class TrainingConfig:
     params_is_augmentation: bool
     params_image_size: list
 
+
+@dataclass(frozen=True)
+class EvaluationConfig:
+    model_path: Path
+    training_data: Path
+    eval_results_path: Path
+    params_image_size: list
+    params_batch_size: int

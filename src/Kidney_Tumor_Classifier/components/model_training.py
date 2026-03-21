@@ -12,20 +12,14 @@ class Training:
         self.model = tf.keras.models.load_model(
             self.config.updated_base_model_path
         )
-        # Recompile with fresh optimizer for Keras 3 compatibility
         self.model.compile(
-            optimizer=tf.keras.optimizers.SGD(momentum=0.9),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.00001),
             loss='categorical_crossentropy',
             metrics=['accuracy']
         )
 
     def train_valid_generator(self):
-
-        # ✅ Correct dataset path (VERY IMPORTANT FIX)
-        data_dir = os.path.join(
-            self.config.training_data,
-            "CT-KIDNEY-DATASET-Normal-Cyst-Tumor-Stone"
-        )
+        data_dir = str(self.config.training_data)
 
         datagenerator_kwargs = dict(
             rescale=1. / 255,
@@ -36,10 +30,9 @@ class Training:
             target_size=self.config.params_image_size[:-1],
             batch_size=self.config.params_batch_size,
             interpolation="bilinear",
-            class_mode="categorical"   # ✅ FIX FOR MULTI-CLASS
+            class_mode="categorical"
         )
 
-        # ✅ Validation generator
         valid_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
             **datagenerator_kwargs
         )
@@ -51,7 +44,6 @@ class Training:
             **dataflow_kwargs
         )
 
-        # ✅ Training generator
         if self.config.params_is_augmentation:
             train_datagenerator = tf.keras.preprocessing.image.ImageDataGenerator(
                 rotation_range=40,
@@ -80,12 +72,37 @@ class Training:
         self.steps_per_epoch = self.train_generator.samples // self.train_generator.batch_size
         self.validation_steps = self.valid_generator.samples // self.valid_generator.batch_size
 
+        class_weights = {
+            0: 2.0,   # Cyst
+            1: 0.5,   # Normal
+            2: 3.0,   # Stone
+            3: 3.0    # Tumor
+        }
+
+        callbacks = [
+            tf.keras.callbacks.EarlyStopping(
+                monitor='val_loss',
+                patience=5,
+                restore_best_weights=True,
+                verbose=1
+            ),
+            tf.keras.callbacks.ReduceLROnPlateau(
+                monitor='val_loss',
+                factor=0.5,
+                patience=3,
+                min_lr=1e-7,
+                verbose=1
+            )
+        ]
+
         self.model.fit(
             self.train_generator,
             epochs=self.config.params_epochs,
             steps_per_epoch=self.steps_per_epoch,
             validation_data=self.valid_generator,
-            validation_steps=self.validation_steps
+            validation_steps=self.validation_steps,
+            callbacks=callbacks,
+            class_weight=class_weights
         )
 
         self.save_model(

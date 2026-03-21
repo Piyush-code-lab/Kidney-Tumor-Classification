@@ -14,4 +14,9 @@ prepare_base_model:
 
 training:
   root_dir: artifacts/training
-  trained_model_path: artifacts/training/model.h5
+  trained_model_path: saved_models/model.h5
+
+evaluation:
+  model_path: saved_models/model.h5
+  training_data: artifacts/data_ingestion
+  eval_results_path: saved_models/eval_results.json
