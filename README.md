@@ -14,16 +14,16 @@ A deep learning project to classify kidney CT scans into 4 categories:
 ## How to run
 
 ### 1. Clone the repo
-git clone https://github.com/Piyush-code-lab/Kidney-Tumor-Classification.git
-cd Kidney-Tumor-Classification
+- git clone https://github.com/Piyush-code-lab/Kidney-Tumor-Classification.git
+- cd Kidney-Tumor-Classification
 
 ### 2. Create environment
-conda create -n kidney_env python=3.11 -y
-conda activate kidney_env
+- conda create -n kidney_env python=3.11 -y
+- conda activate kidney_env
 
 ### 3. Install dependencies
-pip install -e .
-pip install -r requirements.txt
+- pip install -e .
+- pip install -r requirements.txt
 
 ### 4. Train the model
 python main.py
