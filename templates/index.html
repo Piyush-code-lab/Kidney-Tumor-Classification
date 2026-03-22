@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kidney Tumor Classifier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a202c;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 32px;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 24px;
+        }
+
+        .upload-area:hover {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #4299e1;
+            background: #ebf8ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            color: #4a5568;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            color: #a0aec0;
+            font-size: 13px;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        #preview-container {
+            display: none;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        #preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #3182ce;
+        }
+
+        .btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        #result-container {
+            display: none;
+            margin-top: 24px;
+        }
+
+        .result-card {
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .result-card.Cyst     { background: #ebf8ff; border: 1px solid #bee3f8; }
+        .result-card.Normal   { background: #f0fff4; border: 1px solid #9ae6b4; }
+        .result-card.Stone    { background: #fffff0; border: 1px solid #faf089; }
+        .result-card.Tumor    { background: #fff5f5; border: 1px solid #fed7d7; }
+
+        .result-label {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .result-prediction {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .result-card.Cyst   .result-prediction { color: #2b6cb0; }
+        .result-card.Normal .result-prediction { color: #276749; }
+        .result-card.Stone  .result-prediction { color: #975a16; }
+        .result-card.Tumor  .result-prediction { color: #9b2c2c; }
+
+        .result-confidence {
+            font-size: 16px;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+
+        .probabilities {
+            text-align: left;
+        }
+
+        .prob-label {
+            font-size: 13px;
+            color: #4a5568;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .prob-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .prob-name {
+            width: 60px;
+            font-size: 13px;
+            color: #4a5568;
+        }
+
+        .prob-bar-container {
+            flex: 1;
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .prob-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: #4299e1;
+            transition: width 0.5s ease;
+        }
+
+        .prob-value {
+            width: 50px;
+            font-size: 13px;
+            color: #4a5568;
+            text-align: right;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+
+        .error-msg {
+            display: none;
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            color: #9b2c2c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            color: #4299e1;
+            border: 1px solid #4299e1;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #ebf8ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kidney CT Scan Classifier</h1>
+        <p class="subtitle">Upload a CT scan image to classify as Cyst, Normal, Stone or Tumor</p>
+
+        <div class="upload-area" id="upload-area">
+            <div class="upload-icon">🔬</div>
+            <p class="upload-text">Click to upload or drag and drop</p>
+            <p class="upload-subtext">PNG, JPG, JPEG supported</p>
+            <input type="file" id="file-input" accept=".png,.jpg,.jpeg">
+        </div>
+
+        <div id="preview-container">
+            <img id="preview-image" src="" alt="Preview">
+        </div>
+
+        <div class="loading" id="loading">
+            Analyzing CT scan...
+        </div>
+
+        <button class="btn" id="predict-btn" disabled>
+            Classify CT Scan
+        </button>
+
+        <div class="error-msg" id="error-msg"></div>
+
+        <div id="result-container">
+            <div class="result-card" id="result-card">
+                <p class="result-label">Prediction</p>
+                <p class="result-prediction" id="result-prediction"></p>
+                <p class="result-confidence" id="result-confidence"></p>
+                <div class="probabilities">
+                    <p class="prob-label">All class probabilities</p>
+                    <div id="prob-bars"></div>
+                </div>
+            </div>
+            <button class="reset-btn" onclick="resetForm()">Upload Another Image</button>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const previewContainer = document.getElementById('preview-container');
+        const previewImage = document.getElementById('preview-image');
+        const predictBtn = document.getElementById('predict-btn');
+        const resultContainer = document.getElementById('result-container');
+        const loading = document.getElementById('loading');
+        const errorMsg = document.getElementById('error-msg');
+
+        let selectedFile = null;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+                uploadArea.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+            predictBtn.disabled = false;
+            resultContainer.style.display = 'none';
+            errorMsg.style.display = 'none';
+        }
+
+        predictBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            loading.style.display = 'block';
+            predictBtn.disabled = true;
+            resultContainer.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    errorMsg.textContent = data.error;
+                    errorMsg.style.display = 'block';
+                } else {
+                    showResult(data);
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Something went wrong. Please try again.';
+                errorMsg.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                predictBtn.disabled = false;
+            }
+        });
+
+        function showResult(data) {
+            const card = document.getElementById('result-card');
+            card.className = `result-card ${data.prediction}`;
+
+            document.getElementById('result-prediction').textContent = data.prediction;
+            document.getElementById('result-confidence').textContent =
+                `Confidence: ${data.confidence}%`;
+
+            const probBars = document.getElementById('prob-bars');
+            probBars.innerHTML = '';
+
+            for (const [className, prob] of Object.entries(data.all_probabilities)) {
+                probBars.innerHTML += `
+                    <div class="prob-item">
+                        <span class="prob-name">${className}</span>
+                        <div class="prob-bar-container">
+                            <div class="prob-bar" style="width: ${prob}%"></div>
+                        </div>
+                        <span class="prob-value">${prob}%</span>
+                    </div>
+                `;
+            }
+
+            resultContainer.style.display = 'block';
+        }
+
+        function resetForm() {
+            selectedFile = null;
+            fileInput.value = '';
+            previewContainer.style.display = 'none';
+            uploadArea.style.display = 'block';
+            resultContainer.style.display = 'none';
+            errorMsg.style.display = 'none';
+            predictBtn.disabled = true;
+        }
+    </script>
+</body>
+</html>
+```
+
+---
+
+## Add Flask to `requirements.txt`:
+```
+flask
