@@ -1,5 +1,6 @@
 tensorflow
 pandas 
+scikit-learn
 dvc
 mlflow==2.2.2
 #notebook

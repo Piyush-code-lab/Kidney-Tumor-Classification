@@ -208,3 +208,4 @@ __marimo__/
 
 artifacts/*
 saved_models/model.h5
+saved_models/model.keras
